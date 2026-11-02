@@ -2,6 +2,13 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import profile from "./assets/tejas-profile.png";
 import {
   github,
+  linkedin,
+  instagram,
+  email,
+  location,
+  professionalInterests,
+  socialCards,
+  socialLinks,
   projects,
   skillCategories,
   skillsData,
@@ -243,6 +250,231 @@ function ProjectCard({ p }) {
         </div>
       </div>
     </article>
+  );
+}
+
+/* ---- Platform Icons ---- */
+function IconGithub({ className = "" }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </svg>
+  );
+}
+
+function IconLinkedin({ className = "" }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
+function IconInstagram({ className = "" }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function IconMail({ className = "" }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function IconMapPin({ className = "" }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function getPlatformIcon(platform) {
+  switch (platform) {
+    case "github": return <IconGithub />;
+    case "linkedin": return <IconLinkedin />;
+    case "instagram": return <IconInstagram />;
+    case "email": return <IconMail />;
+    default: return null;
+  }
+}
+
+/* ---- Contact Form Component ---- */
+function ContactForm() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: ""
+  });
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const validate = () => {
+    const nextErrors = {};
+    if (!formData.name.trim()) {
+      nextErrors.name = "Full name is required";
+    }
+    if (!formData.email.trim()) {
+      nextErrors.email = "Email address is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      nextErrors.email = "Please enter a valid email address";
+    }
+    if (!formData.subject.trim()) {
+      nextErrors.subject = "Subject is required";
+    }
+    if (!formData.message.trim()) {
+      nextErrors.message = "Message cannot be empty";
+    } else if (formData.message.trim().length < 8) {
+      nextErrors.message = "Please include at least 8 characters";
+    }
+    return nextErrors;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    const encodedSubject = encodeURIComponent(`[Portfolio Inquiry] ${formData.subject.trim()}`);
+    const encodedBody = encodeURIComponent(
+      `Name: ${formData.name.trim()}\nEmail: ${formData.email.trim()}\n\nMessage:\n${formData.message.trim()}`
+    );
+    const mailtoUrl = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
+
+    window.location.href = mailtoUrl;
+    setSubmitted(true);
+  };
+
+  const handleCopy = () => {
+    const text = `To: ${email}\nSubject: [Portfolio Inquiry] ${formData.subject}\nFrom: ${formData.name} <${formData.email}>\n\n${formData.message}`;
+    navigator.clipboard?.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="contact-form-wrap">
+      <form className="contact-form" onSubmit={handleSubmit} noValidate>
+        <div className="form-group">
+          <label htmlFor="form-name">
+            FULL NAME <span className="req">*</span>
+          </label>
+          <input
+            id="form-name"
+            name="name"
+            type="text"
+            placeholder="e.g. John Doe"
+            value={formData.name}
+            onChange={handleChange}
+            className={errors.name ? "has-error" : ""}
+          />
+          {errors.name && <span className="form-error">{errors.name}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="form-email">
+            EMAIL ADDRESS <span className="req">*</span>
+          </label>
+          <input
+            id="form-email"
+            name="email"
+            type="email"
+            placeholder="e.g. your.email@domain.com"
+            value={formData.email}
+            onChange={handleChange}
+            className={errors.email ? "has-error" : ""}
+          />
+          {errors.email && <span className="form-error">{errors.email}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="form-subject">
+            SUBJECT <span className="req">*</span>
+          </label>
+          <input
+            id="form-subject"
+            name="subject"
+            type="text"
+            placeholder="e.g. Project Collaboration / Embedded Systems Query"
+            value={formData.subject}
+            onChange={handleChange}
+            className={errors.subject ? "has-error" : ""}
+          />
+          {errors.subject && <span className="form-error">{errors.subject}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="form-message">
+            MESSAGE <span className="req">*</span>
+          </label>
+          <textarea
+            id="form-message"
+            name="message"
+            rows="5"
+            placeholder="Write your message, project idea or question here..."
+            value={formData.message}
+            onChange={handleChange}
+            className={errors.message ? "has-error" : ""}
+          />
+          {errors.message && <span className="form-error">{errors.message}</span>}
+        </div>
+
+        <button type="submit" className="btn primary submit-btn">
+          SEND MESSAGE ↗
+        </button>
+      </form>
+
+      {submitted && (
+        <div className="form-notice">
+          <div className="form-notice-header">
+            <span className="live-dot" />
+            <span>DISPATCHING VIA EMAIL CLIENT...</span>
+          </div>
+          <p>
+            Your email client was opened with your message addressed to <code>{email}</code>.
+            If your browser does not have a default mail client registered, you can copy your message details below:
+          </p>
+          <div className="form-notice-actions">
+            <button
+              type="button"
+              className="btn ghost btn-sm"
+              onClick={handleCopy}
+            >
+              {copied ? "COPIED TO CLIPBOARD ✓" : "COPY MESSAGE DETAILS"}
+            </button>
+            <a href={`mailto:${email}`} className="btn ghost btn-sm">
+              COMPOSE IN GMAIL / CLIENT ↗
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -589,31 +821,204 @@ export default function App() {
           </div>
         </Reveal>
 
-        {/* ---- Footer / Contact ---- */}
-        <footer id="contact" className="footer">
+        {/* ---- Section 08 / Contact ---- */}
+        <Reveal id="contact" className="section contact-section">
           <div className="section-no">08 / CONTACT</div>
-          <h2>
-            LET'S BUILD THE
-            <br />
-            <span>NEXT USEFUL THING.</span>
-          </h2>
-          <div className="actions">
-            <a
-              className="btn primary"
-              href={github}
-              target="_blank"
-              rel="noreferrer"
-            >
-              GITHUB ↗
-            </a>
-            <button className="btn ghost" disabled>
-              RESUME · COMING SOON
-            </button>
+
+          {/* Availability Status */}
+          <div className="availability-card">
+            <div className="availability-status">
+              <span className="status-dot green" />
+              <span>OPEN TO COLLABORATION</span>
+            </div>
+            <p className="availability-desc">
+              Interested in meaningful engineering projects, technical discussions and innovative ideas.
+            </p>
           </div>
-          <div className="footer-meta">
-            <span>MAHARASHTRA, INDIA</span>
-            <span>ECE STUDENT · DEVELOPER · BUILDER</span>
-            <a href="#top">BACK TO TOP ↑</a>
+
+          {/* Final CTA */}
+          <div className="contact-headline-wrap">
+            <h2>
+              LET'S TURN IDEAS <span>INTO REALITY.</span>
+            </h2>
+            <p className="contact-subtitle">
+              Have an interesting project, technical question or creative idea? Let's connect.
+            </p>
+            <div className="contact-cta-buttons">
+              <a href={`mailto:${email}`} className="btn primary">
+                SEND AN EMAIL
+              </a>
+              <a
+                href={linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn ghost"
+                aria-label="Connect on LinkedIn"
+              >
+                CONNECT ON LINKEDIN ↗
+              </a>
+              <a
+                href={instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn ghost"
+                aria-label="Follow on Instagram"
+              >
+                FOLLOW ON INSTAGRAM ↗
+              </a>
+            </div>
+          </div>
+
+          {/* Contact Main 2-Column Grid */}
+          <div className="contact-main-grid">
+            {/* Left Column: Direct Info & Professional Interests */}
+            <div className="contact-info-col">
+              <div className="contact-info-card">
+                <h3>DIRECT CONTACT</h3>
+
+                <div className="info-item">
+                  <div className="info-label">
+                    <IconMail /> EMAIL
+                  </div>
+                  <a href={`mailto:${email}`} className="info-value email-link">
+                    {email}
+                  </a>
+                  <a
+                    href={`mailto:${email}`}
+                    className="btn ghost btn-sm info-btn"
+                  >
+                    COMPOSE EMAIL ↗
+                  </a>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-label">
+                    <IconMapPin /> LOCATION
+                  </div>
+                  <div className="info-value">{location}</div>
+                </div>
+              </div>
+
+              <div className="contact-interests-card">
+                <h3>PROFESSIONAL INTERESTS</h3>
+                <p className="interests-sub">
+                  Active engineering domains & technical focus areas:
+                </p>
+                <div className="interests-pills">
+                  {professionalInterests.map((interest) => (
+                    <span key={interest} className="interest-pill">
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Contact Form */}
+            <div className="contact-form-col">
+              <div className="contact-form-card">
+                <div className="form-card-header">
+                  <h3>SEND A MESSAGE</h3>
+                  <span className="form-card-badge">DIRECT ROUTING</span>
+                </div>
+                <p className="form-card-intro">
+                  Send a message directly to <code>{email}</code>.
+                </p>
+                <ContactForm />
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Social Connection Cards */}
+          <div className="social-cards-section">
+            <div className="social-cards-header">
+              <small>04 CHANNELS · VERIFIED NETWORKS</small>
+              <h3>CONNECT ACROSS PLATFORMS</h3>
+            </div>
+
+            <div className="social-cards-grid">
+              {socialCards.map((card) => (
+                <article className="social-card" key={card.number}>
+                  <div className="social-card-top">
+                    <span className="social-card-num">{card.number}</span>
+                    <div className="social-card-icon">
+                      {getPlatformIcon(card.platform)}
+                    </div>
+                  </div>
+                  <h4 className="social-card-label">{card.label}</h4>
+                  <p className="social-card-desc">{card.description}</p>
+                  <a
+                    href={card.href}
+                    target={card.isExternal ? "_blank" : undefined}
+                    rel={card.isExternal ? "noopener noreferrer" : undefined}
+                    className="social-card-btn"
+                    aria-label={`${card.buttonText} - ${card.label}`}
+                  >
+                    {card.buttonText}
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+
+        {/* ---- Global Editorial Footer ---- */}
+        <footer className="footer-main">
+          <div className="footer-container">
+            <div className="footer-brand-row">
+              <div className="footer-brand">
+                <a href="#top" className="brand">
+                  TB <span>/ 2.0</span>
+                </a>
+                <div className="footer-name">TEJAS RAJESH BARGAT</div>
+                <p className="footer-tagline">
+                  ENGINEERING THE FUTURE, ONE BUILD AT A TIME.
+                </p>
+              </div>
+
+              <div className="footer-nav-col">
+                <span className="footer-col-title">NAVIGATION</span>
+                <div className="footer-nav-links">
+                  <a href="#about">ABOUT</a>
+                  <a href="#skills">SKILLS</a>
+                  <a href="#projects">PROJECTS</a>
+                  <a href="#journey">JOURNEY</a>
+                  <a href="#roadmap">ROADMAP</a>
+                  <a href="#contact">CONTACT</a>
+                </div>
+              </div>
+
+              <div className="footer-social-col">
+                <span className="footer-col-title">VERIFIED PROFILES</span>
+                <div className="footer-social-links">
+                  {socialLinks.map((s) => (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      target={s.isExternal ? "_blank" : undefined}
+                      rel={s.isExternal ? "noopener noreferrer" : undefined}
+                      className="footer-social-link"
+                      aria-label={`Open Tejas's ${s.label} profile`}
+                    >
+                      {getPlatformIcon(s.platform)}
+                      <span>{s.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="footer-bottom-row">
+              <div className="footer-copyright">
+                © 2026 Tejas Rajesh Bargat. All rights reserved.
+              </div>
+              <div className="footer-location-tag">
+                MAHARASHTRA, INDIA · TGPCET ECE
+              </div>
+              <a href="#top" className="footer-back-to-top">
+                BACK TO TOP ↑
+              </a>
+            </div>
           </div>
         </footer>
       </main>

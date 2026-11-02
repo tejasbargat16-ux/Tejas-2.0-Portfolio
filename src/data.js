@@ -5,6 +5,10 @@
    ========================================================================== */
 
 export const github = "https://github.com/tejasbargat16-ux";
+export const linkedin = "https://www.linkedin.com/in/tejas-bargat-9ab8523b0/";
+export const instagram = "https://www.instagram.com/_tejas_bargat_01_/";
+export const email = "tejasbargat16@gmail.com";
+export const location = "Maharashtra, India";
 
 /* ---- Featured Projects (Proof of Work) ---- */
 export const projects = [
@@ -418,4 +422,83 @@ export const stats = [
   { value: 6, label: "PROJECTS", detail: "Built & Building" },
   { value: 13, label: "DAYS+", detail: "Python Streak Log" },
   { value: 36, label: "SKILLS", detail: "Learning Areas" }
+];
+
+/* ---- Professional Interests ---- */
+export const professionalInterests = [
+  "Software Development",
+  "Artificial Intelligence",
+  "Electronics Engineering",
+  "Embedded Systems",
+  "IoT",
+  "Entrepreneurship",
+  "Technology Innovation"
+];
+
+/* ---- Social Connection Cards ---- */
+export const socialCards = [
+  {
+    number: "01",
+    label: "GITHUB",
+    description: "Explore my repositories, programming practice and engineering projects.",
+    buttonText: "EXPLORE GITHUB ↗",
+    href: "https://github.com/tejasbargat16-ux",
+    isExternal: true,
+    platform: "github"
+  },
+  {
+    number: "02",
+    label: "LINKEDIN",
+    description: "Connect with me professionally and explore my engineering journey.",
+    buttonText: "CONNECT ON LINKEDIN ↗",
+    href: "https://www.linkedin.com/in/tejas-bargat-9ab8523b0/",
+    isExternal: true,
+    platform: "linkedin"
+  },
+  {
+    number: "03",
+    label: "INSTAGRAM",
+    description: "Follow my personal updates, creative work and activities.",
+    buttonText: "FOLLOW ON INSTAGRAM ↗",
+    href: "https://www.instagram.com/_tejas_bargat_01_/",
+    isExternal: true,
+    platform: "instagram"
+  },
+  {
+    number: "04",
+    label: "EMAIL",
+    description: "Contact me for technical discussions, collaborations and interesting ideas.",
+    buttonText: "SEND AN EMAIL ↗",
+    href: "mailto:tejasbargat16@gmail.com",
+    isExternal: false,
+    platform: "email"
+  }
+];
+
+/* ---- Verified Social Profiles ---- */
+export const socialLinks = [
+  {
+    label: "GitHub",
+    href: "https://github.com/tejasbargat16-ux",
+    isExternal: true,
+    platform: "github"
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/tejas-bargat-9ab8523b0/",
+    isExternal: true,
+    platform: "linkedin"
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/_tejas_bargat_01_/",
+    isExternal: true,
+    platform: "instagram"
+  },
+  {
+    label: "Email",
+    href: "mailto:tejasbargat16@gmail.com",
+    isExternal: false,
+    platform: "email"
+  }
 ];
