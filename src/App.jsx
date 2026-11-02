@@ -1,8 +1,16 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import profile from "./assets/tejas-profile.png";
-import { projects, skills, learning, roadmap, stats, labItems } from "./data";
-
-const github = "https://github.com/tejasbargat16-ux";
+import {
+  github,
+  projects,
+  skillCategories,
+  skillsData,
+  aboutBlocks,
+  journeyPhases,
+  labExperiments,
+  roadmap,
+  stats
+} from "./data";
 
 /* ---- Cursor Glow ---- */
 function CursorGlow() {
@@ -64,7 +72,7 @@ function Preloader() {
       return;
     }
     sessionStorage.setItem("tejas-intro", "1");
-    const t = setTimeout(() => setShow(false), 1800);
+    const t = setTimeout(() => setShow(false), 1600);
     return () => clearTimeout(t);
   }, []);
   if (!show) return null;
@@ -157,8 +165,8 @@ function Counter({ end }) {
   return <span ref={ref}>{String(count).padStart(2, "0")}</span>;
 }
 
-/* ---- Project Card ---- */
-function ProjectCard({ p, i }) {
+/* ---- Project Card Component ---- */
+function ProjectCard({ p }) {
   const cardRef = useRef(null);
 
   const handleMouseMove = useCallback((e) => {
@@ -184,16 +192,8 @@ function ProjectCard({ p, i }) {
       onMouseLeave={handleMouseLeave}
     >
       <div className="project-visual">
-        <div className="project-code">{String(i + 1).padStart(2, "0")}</div>
-        <div className="visual-symbol">
-          {p.tone === "ai"
-            ? "N×"
-            : p.tone === "solar"
-            ? "☼"
-            : p.tone === "water"
-            ? "≈"
-            : "PY"}
-        </div>
+        <div className="project-code">{p.number}</div>
+        <div className="visual-symbol">{p.symbol}</div>
         <span className="scan" />
       </div>
       <div className="project-body">
@@ -202,17 +202,45 @@ function ProjectCard({ p, i }) {
           <b>{p.status}</b>
         </div>
         <h3>{p.title}</h3>
+        {p.subtitle && <span className="project-subtitle">{p.subtitle}</span>}
         <p>{p.description}</p>
+
+        {p.capabilities && (
+          <ul className="project-capabilities">
+            {p.capabilities.map((cap) => (
+              <li key={cap}>{cap}</li>
+            ))}
+          </ul>
+        )}
+
         <div className="tags">
           {p.tags.map((t) => (
             <span key={t}>{t}</span>
           ))}
         </div>
-        {p.title === "Python Learning Journey" && (
-          <a href={github} target="_blank" rel="noreferrer">
-            VIEW GITHUB ↗
-          </a>
-        )}
+
+        <div className="project-actions">
+          {p.repo && (
+            <a
+              href={p.repo}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-repo"
+            >
+              VIEW REPOSITORY ↗
+            </a>
+          )}
+          {p.demo && (
+            <a
+              href={p.demo}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-demo"
+            >
+              LIVE DEMO ↗
+            </a>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -220,10 +248,10 @@ function ProjectCard({ p, i }) {
 
 /* ---- Main App ---- */
 export default function App() {
-  const [profileMode, setProfileMode] = useState("Builder");
+  const [selectedSkillCategory, setSelectedSkillCategory] = useState("all");
 
   useEffect(() => {
-    /* scroll progress */
+    /* scroll progress bar */
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - innerHeight;
       document.documentElement.style.setProperty(
@@ -240,7 +268,6 @@ export default function App() {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             e.target.classList.add("visible");
-            /* animate timeline connector */
             if (e.target.classList.contains("timeline")) {
               e.target.classList.add("animated");
             }
@@ -251,7 +278,7 @@ export default function App() {
     );
     document
       .querySelectorAll(
-        ".reveal, .skill-row, .timeline-item, .roadmap-item, .timeline"
+        ".reveal, .timeline-item, .roadmap-item, .timeline, .journey-phase-card"
       )
       .forEach((el) => obs.observe(el));
 
@@ -261,20 +288,10 @@ export default function App() {
     };
   }, []);
 
-  const identityContent = {
-    Builder: {
-      heading: "Ideas become circuits, code and prototypes.",
-      text: "I learn by making: from water-level sensing and solar tracking to the Nexus AI assistant concept.",
-    },
-    Student: {
-      heading: "Second-year ECE, still expanding the map.",
-      text: "I study Electronics & Communication Engineering at TGPCET while building software foundations and preparing for deeper CSE/ECE study.",
-    },
-    Explorer: {
-      heading: "Engineering range with an honest learning curve.",
-      text: "AI, embedded systems, defensive cybersecurity and product thinking are active explorations—not finished mastery claims.",
-    },
-  };
+  const filteredSkills =
+    selectedSkillCategory === "all"
+      ? skillsData
+      : skillsData.filter((s) => s.category === selectedSkillCategory);
 
   return (
     <>
@@ -285,7 +302,7 @@ export default function App() {
       <Nav />
 
       <main id="top">
-        {/* ---- Hero ---- */}
+        {/* ---- Hero Section (Exact Master Reference Screenshot 1) ---- */}
         <section className="hero">
           <div className="hero-bg" aria-hidden="true" />
           <div className="hero-copy">
@@ -321,7 +338,7 @@ export default function App() {
             </div>
           </div>
           <div className="hero-photo-wrap">
-            <img src={profile} className="hero-photo" alt="Tejas Bargat" />
+            <img src={profile} className="hero-photo" alt="Tejas Rajesh Bargat" />
             <div className="photo-label">TEJAS / 01</div>
           </div>
           <div className="hero-bottom">
@@ -330,65 +347,54 @@ export default function App() {
           </div>
         </section>
 
-        {/* ---- Identity ---- */}
-        <Reveal className="identity">
-          <div className="section-no">00 / IDENTITY</div>
-          <h2>
-            WHO IS <span>TEJAS?</span>
-          </h2>
-          <div className="identity-tabs">
-            {["Builder", "Student", "Explorer"].map((x) => (
-              <button
-                className={profileMode === x ? "active" : ""}
-                onClick={() => setProfileMode(x)}
-                key={x}
-              >
-                {x}
-              </button>
-            ))}
-          </div>
-          <div className="identity-panel">
-            <strong>
-              0{["Builder", "Student", "Explorer"].indexOf(profileMode) + 1}
-            </strong>
-            <div>
-              <h3>{identityContent[profileMode].heading}</h3>
-              <p>{identityContent[profileMode].text}</p>
-            </div>
-          </div>
-        </Reveal>
-
-        {/* ---- About ---- */}
+        {/* ---- About Section ---- */}
         <Reveal id="about" className="about section">
           <div className="section-no">01 / THE BUILDER</div>
           <div className="two-col">
             <h2>
-              I'M LEARNING TO CONNECT{" "}
-              <span>SOFTWARE WITH THE PHYSICAL WORLD.</span>
+              NOT JUST LEARNING TECHNOLOGY.
+              <br />
+              <span>BUILDING WITH IT.</span>
             </h2>
             <div>
               <p>
-                I'm Tejas, a second-year B.Tech student in Electronics &
-                Communication Engineering at TGPCET autonomous college. My work
-                sits where logic, hardware and product ideas meet.
+                I'm Tejas Rajesh Bargat, a second-year Electronics and
+                Communication Engineering student interested in connecting
+                hardware, software and artificial intelligence.
               </p>
               <p>
-                I'm not presenting a finished story. I'm building the
-                fundamentals in public—one Python day, one circuit and one useful
-                prototype at a time—with GATE 2028 and higher technical
-                education on the horizon.
+                I enjoy understanding how systems work, experimenting with new
+                technologies, developing software and building practical
+                engineering projects.
+              </p>
+              <p>
+                My journey combines electronics, programming, embedded systems,
+                AI, automation and entrepreneurship. I believe engineering is
+                not just about understanding technology. It's about using it to
+                solve meaningful problems.
               </p>
               <div className="facts">
-                <span>ECE · YEAR 02</span>
-                <span>SSC 74%</span>
-                <span>HSC 47%</span>
-                <span>MHT-CET 41.7471281</span>
+                <span>ECE · YEAR 02 · TGPCET</span>
+                <span>MAHARASHTRA, INDIA</span>
+                <span>GATE 2028 ASPIRANT</span>
+                <span>BUILDING IN PUBLIC</span>
               </div>
             </div>
           </div>
+
+          {/* 4 Editorial Information Blocks */}
+          <div className="about-blocks-grid">
+            {aboutBlocks.map((b) => (
+              <div className="about-block-card" key={b.code}>
+                <span className="about-block-code">{b.code} — {b.title}</span>
+                <h3>{b.title}</h3>
+                <p>{b.desc}</p>
+              </div>
+            ))}
+          </div>
         </Reveal>
 
-        {/* ---- Stats ---- */}
+        {/* ---- Stats Row ---- */}
         <div className="stats-row reveal">
           {stats.map((s) => (
             <div className="stat-card" key={s.label}>
@@ -401,59 +407,76 @@ export default function App() {
           ))}
         </div>
 
-        {/* ---- Skills ---- */}
+        {/* ---- Technical Skills Section ---- */}
         <Reveal id="skills" className="section">
           <div className="section-no">02 / CAPABILITY MAP</div>
           <h2>
-            PROGRESS, <span>NOT POSTURING.</span>
+            THE TOOLS <span>BEHIND THE BUILDS.</span>
           </h2>
           <p className="muted">
-            Signals show where I'm actively building and where I'm still
-            exploring.
+            Organized into learning areas and developing skills across the
+            engineering stack—focusing on practical application, active builds,
+            and honest progress.
           </p>
-          <div className="skills-grid">
-            {skills.map(([name, level, status, detail]) => (
-              <div className="skill-row" key={name}>
-                <div>
-                  <h3>{name}</h3>
-                  <p>{detail}</p>
+
+          {/* Category Filter Tabs */}
+          <div className="skills-filter">
+            {skillCategories.map((cat) => (
+              <button
+                key={cat.id}
+                className={selectedSkillCategory === cat.id ? "active" : ""}
+                onClick={() => setSelectedSkillCategory(cat.id)}
+              >
+                {cat.label} ({cat.count})
+              </button>
+            ))}
+          </div>
+
+          {/* Technical Skills Cards Grid */}
+          <div className="skills-cards-grid">
+            {filteredSkills.map((s) => (
+              <div className="skill-card" key={s.name}>
+                <div className="skill-card-top">
+                  <h3>{s.name}</h3>
+                  <span className="skill-badge">{s.status}</span>
                 </div>
-                <b>{status}</b>
-                <div className="skill-track">
-                  <i style={{ width: `${level}%` }} />
-                </div>
+                <p>{s.detail}</p>
               </div>
             ))}
           </div>
         </Reveal>
 
-        {/* ---- Projects ---- */}
+        {/* ---- Featured Projects Section ---- */}
         <Reveal id="projects" className="section projects">
           <div className="section-no">03 / FEATURED WORK</div>
           <h2>
-            BUILT TO LEARN.
-            <br />
-            <span>DESIGNED TO BECOME USEFUL.</span>
+            IDEAS INTO <span>ENGINEERED SYSTEMS.</span>
           </h2>
+          <p className="muted">
+            Physical hardware prototypes, AI assistant concepts, campus
+            management systems, and disciplined public code logs built to solve
+            real friction.
+          </p>
           <div className="project-grid">
-            {projects.map((p, i) => (
-              <ProjectCard p={p} i={i} key={p.title} />
+            {projects.map((p) => (
+              <ProjectCard p={p} key={p.id} />
             ))}
           </div>
         </Reveal>
 
-        {/* ---- Journey ---- */}
+        {/* ---- Build Journey Section ---- */}
         <Reveal id="journey" className="section journey">
-          <div className="section-no">04 / LEARNING IN PUBLIC</div>
+          <div className="section-no">04 / BUILD JOURNEY</div>
           <div className="two-col">
             <div>
-              <div className="eyebrow">PYTHON LEARNING JOURNEY</div>
+              <div className="eyebrow">CHRONOLOGICAL DEVELOPMENT TIMELINE</div>
               <h2>
-                DAY 01 → <span>DAY 13</span>
+                EVERY BUILD <span>HAS A STORY.</span>
               </h2>
               <p className="muted">
-                A public record of consistency: foundations first, practice every
-                day and honest progress committed to GitHub.
+                An evolving journey from first-principles circuit theory and
+                electronics to embedded firmware, terminal workflows, and
+                intelligent software architectures.
               </p>
               <a
                 className="text-link"
@@ -461,58 +484,86 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
               >
-                OPEN GITHUB PROFILE ↗
+                EXPLORE ALL REPOSITORIES ON GITHUB ↗
               </a>
             </div>
-            <div className="timeline">
-              {learning.map(([day, topic], i) => (
-                <div className="timeline-item" key={day}>
-                  <span>{day}</span>
-                  <p>{topic}</p>
-                  {i === learning.length - 1 && <b>NOW</b>}
+            <div className="journey-phases-list">
+              {journeyPhases.map((phase) => (
+                <div className="journey-phase-card" key={phase.phase}>
+                  <div className="journey-phase-header">
+                    <strong>{phase.phase} — {phase.title}</strong>
+                    <span className="journey-phase-status">{phase.status}</span>
+                  </div>
+                  <h3>{phase.title}</h3>
+                  <span className="journey-subtitle">{phase.subtitle}</span>
+                  <p>{phase.description}</p>
+                  <div className="journey-phase-points">
+                    {phase.points.map((pt) => (
+                      <span key={pt}>{pt}</span>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </Reveal>
 
-        {/* ---- Electronics Lab ---- */}
-        <Reveal className="section lab">
-          <div className="section-no">05 / ELECTRONICS LAB</div>
+        {/* ---- Engineering Lab Section ---- */}
+        <Reveal id="lab" className="section lab">
+          <div className="section-no">05 / ENGINEERING LAB</div>
           <h2>
-            HARDWARE IS WHERE <span>LOGIC MEETS CONSEQUENCE.</span>
+            EXPERIMENT. TEST. <span>BUILD. REPEAT.</span>
           </h2>
+          <p className="muted">
+            Hardware breadboards, microcontroller tests, and computational
+            experiments where logic meets physical consequence.
+          </p>
           <div className="lab-grid">
-            {labItems.map(([code, title, desc]) => (
-              <article key={code}>
-                <small>{code}</small>
-                <h3>{title}</h3>
-                <p>{desc}</p>
+            {labExperiments.map((exp) => (
+              <article key={exp.code}>
+                <div className="lab-card-top">
+                  <small>{exp.code} · {exp.tag}</small>
+                  <span
+                    className={`lab-card-status ${
+                      exp.status === "ACTIVE"
+                        ? "lab-status-active"
+                        : exp.status === "PROTOTYPED"
+                        ? "lab-status-prototyped"
+                        : exp.status === "IN PROGRESS"
+                        ? "lab-status-in-progress"
+                        : "lab-status-planned"
+                    }`}
+                  >
+                    {exp.status}
+                  </span>
+                </div>
+                <h3>{exp.title}</h3>
+                <p>{exp.desc}</p>
               </article>
             ))}
           </div>
         </Reveal>
 
-        {/* ---- Roadmap ---- */}
+        {/* ---- Career Roadmap Section ---- */}
         <Reveal id="roadmap" className="section roadmap">
           <div className="section-no">06 / CAREER ROADMAP</div>
           <h2>
             2026 → <span>2028+</span>
           </h2>
           <div className="roadmap-list">
-            {roadmap.map(([year, title, desc]) => (
-              <article className="roadmap-item" key={year}>
-                <strong>{year}</strong>
+            {roadmap.map((item) => (
+              <article className="roadmap-item" key={item.year}>
+                <strong>{item.year}</strong>
                 <div>
-                  <h3>{title}</h3>
-                  <p>{desc}</p>
+                  <h3>{item.title}</h3>
+                  <p>{item.desc}</p>
                 </div>
               </article>
             ))}
           </div>
         </Reveal>
 
-        {/* ---- GitHub ---- */}
+        {/* ---- GitHub Proof of Work ---- */}
         <Reveal className="section github-panel">
           <div className="section-no">07 / PROOF OF WORK</div>
           <div className="github-box">
@@ -524,7 +575,8 @@ export default function App() {
             </h2>
             <p>
               Follow the code, experiments and learning journey instead of
-              taking a polished headline on faith.
+              taking a polished headline on faith. Every line committed in
+              public.
             </p>
             <a
               className="btn primary"
