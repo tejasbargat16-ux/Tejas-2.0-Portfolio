@@ -320,6 +320,7 @@ function ContactForm() {
     message: ""
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -354,6 +355,8 @@ function ContactForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -361,14 +364,19 @@ function ContactForm() {
     }
 
     setErrors({});
+    setIsSubmitting(true);
+
     const encodedSubject = encodeURIComponent(`[Portfolio Inquiry] ${formData.subject.trim()}`);
     const encodedBody = encodeURIComponent(
       `Name: ${formData.name.trim()}\nEmail: ${formData.email.trim()}\n\nMessage:\n${formData.message.trim()}`
     );
     const mailtoUrl = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
 
-    window.location.href = mailtoUrl;
-    setSubmitted(true);
+    setTimeout(() => {
+      window.location.href = mailtoUrl;
+      setSubmitted(true);
+      setIsSubmitting(false);
+    }, 450);
   };
 
   const handleCopy = () => {
@@ -445,8 +453,19 @@ function ContactForm() {
           {errors.message && <span className="form-error">{errors.message}</span>}
         </div>
 
-        <button type="submit" className="btn primary submit-btn">
-          SEND MESSAGE ↗
+        <button
+          type="submit"
+          className={`btn primary submit-btn ${isSubmitting ? "is-submitting" : ""}`}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="submit-spinner" aria-hidden="true" />
+              <span>PREPARING DISPATCH...</span>
+            </>
+          ) : (
+            <span>SEND MESSAGE ↗</span>
+          )}
         </button>
       </form>
 
