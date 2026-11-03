@@ -1,3 +1,4 @@
+import NexusChat from "./nexus/NexusChat";
 import { useEffect, useState, useRef, useCallback } from "react";
 import profile from "./assets/tejas-profile.png";
 import {
@@ -559,8 +560,6 @@ export default function App() {
   return (
     <>
       <Preloader />
-      <CursorGlow />
-      <Particles />
       <div className="progress-bar" />
       <Nav />
 
@@ -603,10 +602,6 @@ export default function App() {
           <div className="hero-photo-wrap">
             <img src={profile} className="hero-photo" alt="Tejas Rajesh Bargat" />
             <div className="photo-label">TEJAS / 01</div>
-          </div>
-          <div className="hero-bottom">
-            <span>SCROLL TO EXPLORE</span>
-            <span>02 / ECE · TGPCET</span>
           </div>
         </section>
 
@@ -1053,6 +1048,7 @@ export default function App() {
           </div>
         </footer>
       </main>
+      <NexusChat />
     </>
   );
 }
