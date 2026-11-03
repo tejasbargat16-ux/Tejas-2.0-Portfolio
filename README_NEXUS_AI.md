@@ -64,3 +64,4 @@ Vite automatically proxies `/api` calls to the local Node backend.
 ## 🛡️ Security & Privacy
 - Private API keys are never bundled into client-side code.
 - User conversations are stored only for the duration of the browser tab via `sessionStorage`.
+

@@ -214,7 +214,7 @@ export default function NexusChat() {
         <button
           className="nexus-launcher"
           onClick={handleOpen}
-          aria-label="Open NEXUS AI Chatbot"
+          aria-label="Open NEXUS — AI Portfolio Assistant"
           aria-expanded={isOpen}
         >
           <div className="nexus-launcher-glow" />
@@ -245,10 +245,10 @@ export default function NexusChat() {
               </div>
               <div className="nexus-header-text">
                 <div className="nexus-title-row">
-                  <span className="nexus-title">NEXUS AI</span>
+                  <span className="nexus-title">NEXUS</span>
                   <span className="nexus-online-tag">ONLINE</span>
                 </div>
-                <span className="nexus-subtitle">PORTFOLIO INTELLIGENCE</span>
+                <span className="nexus-subtitle">AI PORTFOLIO ASSISTANT</span>
               </div>
             </div>
 
@@ -558,3 +558,4 @@ function MicrophoneIcon() {
     </svg>
   );
 }
+

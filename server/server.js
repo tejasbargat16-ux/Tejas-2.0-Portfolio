@@ -1,20 +1,49 @@
 /* ==========================================================================
-   NEXUS AI — LOCAL / PRODUCTION BACKEND SERVER (server/server.js)
-   Standalone zero-dependency Node.js HTTP server for NEXUS AI
-   Runs on Node 18+ using native fetch & http
+   NEXUS AI — EXPRESS BACKEND SERVER (server/server.js)
+   Node.js + Express backend powered by official @google/genai SDK
+   Environment: GEMINI_API_KEY
+   Features: Rate limiting, input validation, CORS restrictions, error handling
    ========================================================================== */
 
-import http from "node:http";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 import { NEXUS_SYSTEM_PROMPT } from "../src/nexus/knowledgeBase.js";
 
+dotenv.config();
+
+const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Simple in-memory rate limiter (sliding window)
-const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW = 60 * 1000;
-const MAX_REQUESTS = 20;
+// Allowed CORS origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : ["*"];
 
-function checkRateLimit(ip) {
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Request origin blocked by CORS policy."));
+      }
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use(express.json({ limit: "50kb" }));
+
+// In-memory sliding window rate limiter per client IP
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute window
+const MAX_REQUESTS = 30; // Max 30 requests per minute
+
+function rateLimiter(req, res, next) {
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "anonymous";
   const now = Date.now();
   const entry = rateLimitMap.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
 
@@ -26,224 +55,140 @@ function checkRateLimit(ip) {
   }
 
   rateLimitMap.set(ip, entry);
-  return entry.count <= MAX_REQUESTS;
+
+  if (entry.count > MAX_REQUESTS) {
+    return res.status(429).json({
+      error: "Rate limit exceeded. Please wait a moment before sending more messages.",
+    });
+  }
+  next();
 }
 
-const server = http.createServer(async (req, res) => {
-  // CORS Headers
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  if (req.method === "OPTIONS") {
-    res.writeHead(200);
-    return res.end();
-  }
-
-  // Health check endpoint
-  if (req.method === "GET" && req.url === "/api/health") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(
-      JSON.stringify({
-        status: "ok",
-        service: "NEXUS AI Backend",
-        hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
-        hasGroqKey: Boolean(process.env.GROQ_API_KEY),
-        hasOpenAIKey: Boolean(process.env.OPENAI_API_KEY),
-      })
-    );
-  }
-
-  // Chat conversation endpoint
-  if (req.method === "POST" && (req.url === "/api/chat" || req.url === "/chat")) {
-    const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "anonymous";
-
-    if (!checkRateLimit(clientIp)) {
-      res.writeHead(429, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ error: "Rate limit exceeded. Please wait a minute." }));
-    }
-
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-      if (body.length > 50000) {
-        req.destroy(); // Prevent memory exhaustion
-      }
-    });
-
-    req.on("end", async () => {
-      try {
-        const parsed = JSON.parse(body || "{}");
-        const { message, history } = parsed;
-
-        if (!message || typeof message !== "string" || !message.trim()) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          return res.end(JSON.stringify({ error: "Message parameter is required." }));
-        }
-
-        const geminiKey = process.env.GEMINI_API_KEY;
-        const groqKey = process.env.GROQ_API_KEY;
-        const openAiKey = process.env.OPENAI_API_KEY;
-
-        let reply = "";
-
-        if (geminiKey) {
-          reply = await callGemini(geminiKey, message.trim(), history);
-        } else if (groqKey) {
-          reply = await callGroq(groqKey, message.trim(), history);
-        } else if (openAiKey) {
-          reply = await callOpenAI(openAiKey, message.trim(), history);
-        } else {
-          res.writeHead(503, { "Content-Type": "application/json" });
-          return res.end(
-            JSON.stringify({
-              error: "No AI API key configured on the server. Falling back to knowledge engine.",
-            })
-          );
-        }
-
-        res.writeHead(200, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ reply }));
-      } catch (err) {
-        console.error("NEXUS Server Error:", err);
-        res.writeHead(500, { "Content-Type": "application/json" });
-        return res.end(
-          JSON.stringify({ error: "Server error: " + (err.message || "Unknown error") })
-        );
-      }
-    });
-
-    return;
-  }
-
-  // 404 for other endpoints
-  res.writeHead(404, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ error: "Endpoint not found." }));
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "NEXUS — AI Portfolio Assistant Backend",
+    engine: "Google Gen AI (@google/genai)",
+    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    port: PORT,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-async function callGemini(apiKey, userMessage, history = []) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+// Chat endpoint
+app.post("/api/chat", rateLimiter, async (req, res) => {
+  const { message, history } = req.body || {};
 
-  const contents = [
-    {
+  // Request validation
+  if (!message || typeof message !== "string" || !message.trim()) {
+    return res.status(400).json({ error: "Message must be a non-empty string." });
+  }
+
+  const cleanMessage = message.trim();
+  if (cleanMessage.length > 2000) {
+    return res.status(400).json({
+      error: "Message exceeds maximum allowed character length (2000 characters).",
+    });
+  }
+
+  const geminiKey = process.env.GEMINI_API_KEY;
+
+  if (!geminiKey) {
+    return res.status(503).json({
+      error: "GEMINI_API_KEY is not configured on the backend server. Falling back to local knowledge engine.",
+      fallback: true,
+    });
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: geminiKey });
+
+    // Prepare contents array adhering to Google Gen AI schemas
+    const contents = [];
+
+    // System prompt grounding
+    contents.push({
       role: "user",
-      parts: [{ text: NEXUS_SYSTEM_PROMPT + "\n\nPlease acknowledge and adhere to these guidelines." }],
-    },
-    {
+      parts: [
+        {
+          text: `${NEXUS_SYSTEM_PROMPT}\n\nPlease acknowledge and adhere strictly to these instructions as NEXUS AI.`,
+        },
+      ],
+    });
+
+    contents.push({
       role: "model",
-      parts: [{ text: "Understood. I am NEXUS AI, the official personal portfolio intelligence representing Tejas Rajesh Bargat." }],
-    },
-  ];
+      parts: [
+        {
+          text: "Understood. I am NEXUS, Tejas Rajesh Bargat's AI portfolio assistant. I am ready to assist visitors accurately based solely on his verified engineering projects, skills, education, and roadmap.",
+        },
+      ],
+    });
 
-  if (Array.isArray(history)) {
-    for (const h of history) {
-      if (h.role && h.content) {
-        contents.push({
-          role: h.role === "assistant" ? "model" : "user",
-          parts: [{ text: h.content }],
-        });
-      }
+    // Add recent conversational context
+    if (Array.isArray(history)) {
+      history.slice(-8).forEach((item) => {
+        if (item && item.content) {
+          contents.push({
+            role: item.role === "user" ? "user" : "model",
+            parts: [{ text: String(item.content) }],
+          });
+        }
+      });
     }
-  }
 
-  contents.push({
-    role: "user",
-    parts: [{ text: userMessage }],
-  });
+    // Append current user message
+    contents.push({
+      role: "user",
+      parts: [{ text: cleanMessage }],
+    });
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents,
-      generationConfig: { maxOutputTokens: 500, temperature: 0.4 },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${errorData}`);
-  }
-
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Empty response from Gemini API.");
-  return text;
-}
-
-async function callGroq(apiKey, userMessage, history = []) {
-  const url = "https://api.groq.com/openai/v1/chat/completions";
-  const messages = [{ role: "system", content: NEXUS_SYSTEM_PROMPT }];
-
-  if (Array.isArray(history)) {
-    for (const h of history) {
-      if (h.role && h.content) {
-        messages.push({ role: h.role, content: h.content });
-      }
+    // Call @google/genai SDK with modern flash model and fallback
+    let response;
+    try {
+      response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents,
+      });
+    } catch (modelErr) {
+      console.warn("Primary model failed, attempting gemini-1.5-flash fallback:", modelErr.message);
+      response = await ai.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents,
+      });
     }
-  }
 
-  messages.push({ role: "user", content: userMessage });
+    const replyText =
+      response.text ||
+      (response.candidates && response.candidates[0]?.content?.parts?.[0]?.text) ||
+      "";
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
-      messages,
-      max_tokens: 500,
-      temperature: 0.4,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Groq API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-
-async function callOpenAI(apiKey, userMessage, history = []) {
-  const url = "https://api.openai.com/v1/chat/completions";
-  const messages = [{ role: "system", content: NEXUS_SYSTEM_PROMPT }];
-
-  if (Array.isArray(history)) {
-    for (const h of history) {
-      if (h.role && h.content) {
-        messages.push({ role: h.role, content: h.content });
-      }
+    if (!replyText) {
+      throw new Error("Empty response received from Gemini API.");
     }
+
+    return res.json({ reply: replyText });
+  } catch (err) {
+    console.error("NEXUS Backend Error (Gemini):", err);
+    return res.status(500).json({
+      error: "Gemini API error: " + (err.message || "Unknown error"),
+      fallback: true,
+    });
   }
-
-  messages.push({ role: "user", content: userMessage });
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages,
-      max_tokens: 500,
-      temperature: 0.4,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
-}
-
-server.listen(PORT, () => {
-  console.log(`[NEXUS AI] Server running on http://localhost:${PORT}`);
-  console.log(`[NEXUS AI] Gemini API Key: ${process.env.GEMINI_API_KEY ? "CONFIGURED ✓" : "NOT SET (Local Engine active)"}`);
 });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Unhandled Error:", err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
+// Start Express server
+const server = app.listen(PORT, () => {
+  console.log(`[NEXUS AI] Express server active at http://localhost:${PORT}`);
+  console.log(`[NEXUS AI] Health check: http://localhost:${PORT}/api/health`);
+  console.log(`[NEXUS AI] Gemini API Key present: ${Boolean(process.env.GEMINI_API_KEY)}`);
+});
+
+export default app;

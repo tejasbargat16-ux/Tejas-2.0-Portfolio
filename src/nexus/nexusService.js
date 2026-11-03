@@ -4,12 +4,12 @@
    Guarantees 100% availability on both GitHub Pages static and Full-stack hosts
    ========================================================================== */
 
-import { TEJAS_PROFILE, NEXUS_SYSTEM_PROMPT } from "./knowledgeBase";
+import { TEJAS_PROFILE, NEXUS_SYSTEM_PROMPT } from "./knowledgeBase.js";
 
 /* Configuration */
 const BACKEND_URL =
-  import.meta.env.VITE_NEXUS_API_URL ||
-  (import.meta.env.DEV ? "/api/chat" : null);
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_NEXUS_API_URL) ||
+  "/api/chat";
 
 /**
  * Main entry point for sending a message to NEXUS AI
@@ -388,3 +388,4 @@ function extractActions(replyText) {
   }
   return actions.slice(0, 4);
 }
+
