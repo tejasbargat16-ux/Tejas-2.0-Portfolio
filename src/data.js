@@ -4,6 +4,13 @@
    Owner: Tejas Rajesh Bargat (TGPCET ECE · Year 02)
    ========================================================================== */
 
+import nexusAiImg from "./assets/projects/nexus-ai-overview.png";
+import waterTankImg from "./assets/projects/water-tank-hardware.png";
+import solarTrackerImg from "./assets/projects/solar-tracker.jpg";
+import portfolioImg from "./assets/projects/tejas-portfolio.png";
+import pythonJourneyImg from "./assets/projects/python-journey.png";
+import campusCareImg from "./assets/projects/campuscare-ai.jpg";
+
 export const github = "https://github.com/tejasbargat16-ux";
 export const linkedin = "https://www.linkedin.com/in/tejas-bargat-9ab8523b0/";
 export const instagram = "https://www.instagram.com/_tejas_bargat_01_/";
@@ -20,6 +27,8 @@ export const projects = [
     category: "AI Assistant / Software",
     kicker: "01 · AI ASSISTANT / SOFTWARE",
     status: "BUILDING",
+    image: nexusAiImg,
+    badge: "TERMUX · MULTI-LLM",
     description:
       "A mobile-first personal AI assistant concept inspired by intelligent assistant systems, exploring conversational interaction, memory architecture, web search integration, and modular plugins.",
     capabilities: [
@@ -44,6 +53,8 @@ export const projects = [
     category: "Electronics / IoT",
     kicker: "02 · ELECTRONICS / IOT",
     status: "PROTOTYPED",
+    image: waterTankImg,
+    badge: "ESP32 · HARDWARE PROTOTYPE",
     description:
       "Two-tank water monitoring and automatic motor control system with sensor-based level detection, visual RGB status indicators, and audible buzzer alerts with overflow protection.",
     capabilities: [
@@ -67,6 +78,8 @@ export const projects = [
     category: "Embedded Systems",
     kicker: "03 · EMBEDDED SYSTEMS",
     status: "PROTOTYPE",
+    image: solarTrackerImg,
+    badge: "8051 MCU · SCHEMATIC",
     description:
       "An 8051 microcontroller-based solar tracking concept utilizing light-dependent resistor (LDR) differential sensing and motor-driver control logic to follow peak sunlight.",
     capabilities: [
@@ -89,6 +102,8 @@ export const projects = [
     category: "Web Development / Personal Branding",
     kicker: "04 · WEB DEVELOPMENT / BRANDING",
     status: "DEPLOYED",
+    image: portfolioImg,
+    badge: "LIVE WEB APP · REACT 19",
     description:
       "A responsive personal engineering portfolio showcasing skills, hardware builds, AI experiments, public learning streaks, and architectural design language.",
     capabilities: [
@@ -111,6 +126,8 @@ export const projects = [
     category: "Software Development",
     kicker: "05 · SOFTWARE DEVELOPMENT",
     status: "ACTIVE LEARNING",
+    image: pythonJourneyImg,
+    badge: "PUBLIC STREAK · DAILY BUILDS",
     description:
       "A disciplined day-by-day public learning journey covering Python, Java, JavaScript, and C fundamentals, LeetCode problem solving, and practical micro-builds committed to GitHub.",
     capabilities: [
@@ -133,6 +150,8 @@ export const projects = [
     category: "AI / Product Development",
     kicker: "06 · AI / PRODUCT DEVELOPMENT",
     status: "BUILDING",
+    image: campusCareImg,
+    badge: "FLUTTER + FASTAPI · UI",
     description:
       "An AI-powered campus complaint management platform combining Flutter mobile frontend with FastAPI backend, featuring role-based access, issue tracking, image uploads, priority analysis, and admin dashboards.",
     capabilities: [

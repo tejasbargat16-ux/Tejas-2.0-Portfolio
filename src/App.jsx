@@ -199,8 +199,20 @@ function ProjectCard({ p }) {
       onMouseLeave={handleMouseLeave}
     >
       <div className="project-visual">
-        <div className="project-code">{p.number}</div>
-        <div className="visual-symbol">{p.symbol}</div>
+        {p.image && (
+          <img
+            src={p.image}
+            alt={`${p.title} preview`}
+            className="project-visual-img"
+            loading="lazy"
+          />
+        )}
+        <div className="project-visual-overlay" />
+        <div className="project-visual-header">
+          <div className="project-code">{p.number}</div>
+          {p.badge && <span className="project-badge">{p.badge}</span>}
+        </div>
+        <div className="visual-symbol" aria-hidden="true">{p.symbol}</div>
         <span className="scan" />
       </div>
       <div className="project-body">

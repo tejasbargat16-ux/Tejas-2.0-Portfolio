@@ -940,37 +940,131 @@ img {
   background: radial-gradient(circle at 60% 40%, #3a0b0f, var(--surface) 52%, #080808);
 }
 
-.project-card.solar .project-visual {
-  background: radial-gradient(circle at 50% 45%, #40300d, var(--surface) 55%, #080808);
+.project-visual-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 0.65s ease;
+  will-change: transform, filter;
+  z-index: 0;
 }
 
-.project-card.water .project-visual {
-  background: radial-gradient(circle at 50% 45%, #0b2830, var(--surface) 55%, #080808);
+.project-card:hover .project-visual-img {
+  transform: scale(1.05);
+  filter: brightness(1.06) contrast(1.03);
 }
 
-.project-card.python .project-visual {
-  background: radial-gradient(circle at 50% 45%, #24200b, var(--surface) 55%, #080808);
+.project-card.water .project-visual-img {
+  object-position: center 40%;
+}
+
+.project-card.python .project-visual-img {
+  object-position: center;
+}
+
+.project-visual-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 8, 8, 0.25) 0%,
+    rgba(8, 8, 8, 0.2) 40%,
+    rgba(8, 8, 8, 0.88) 85%,
+    rgba(8, 8, 8, 0.98) 100%
+  ),
+  radial-gradient(circle at 85% 15%, rgba(242, 13, 32, 0.12) 0%, transparent 55%);
+  transition: background 0.4s ease;
+}
+
+.project-card:hover .project-visual-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 8, 8, 0.15) 0%,
+    rgba(8, 8, 8, 0.1) 40%,
+    rgba(8, 8, 8, 0.82) 85%,
+    rgba(8, 8, 8, 0.95) 100%
+  ),
+  radial-gradient(circle at 85% 15%, rgba(242, 13, 32, 0.22) 0%, transparent 50%);
+}
+
+.project-visual-header {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .project-code {
-  position: absolute;
-  left: 22px;
-  top: 22px;
-  color: var(--dim);
-  font-size: 0.58rem;
+  position: static;
+  background: rgba(8, 8, 8, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 10px;
+  border-radius: 3px;
+  color: var(--text-sec);
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   font-family: var(--font-mono);
+  font-weight: 700;
+  transition: border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.project-card:hover .project-code {
+  border-color: rgba(242, 13, 32, 0.55);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--accent-subtle);
+}
+
+.project-badge {
+  background: rgba(8, 8, 8, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 3px;
+  color: var(--muted);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.project-card:hover .project-badge {
+  border-color: rgba(242, 13, 32, 0.4);
+  color: var(--text-sec);
 }
 
 .visual-symbol {
   position: absolute;
-  inset: 0;
+  right: 18px;
+  bottom: 12px;
   display: grid;
   place-items: center;
-  font-size: 6rem;
+  font-size: 3.5rem;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.04);
-  text-shadow: 0 0 45px rgba(229, 9, 20, 0.15);
+  color: rgba(255, 255, 255, 0.05);
+  text-shadow: 0 0 25px rgba(242, 13, 32, 0.2);
+  z-index: 1;
+  pointer-events: none;
+  transition: transform 0.4s var(--ease-spring), color 0.3s ease;
+}
+
+.project-card:hover .visual-symbol {
+  color: rgba(242, 13, 32, 0.12);
+  transform: scale(1.08);
 }
 
 .scan {
@@ -978,8 +1072,10 @@ img {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(229, 9, 20, 0.3), transparent);
+  z-index: 2;
+  background: linear-gradient(90deg, transparent, rgba(242, 13, 32, 0.45), transparent);
   animation: scan 3.5s linear infinite;
+  pointer-events: none;
 }
 
 .project-body {
